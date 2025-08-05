@@ -13,25 +13,32 @@ export const dataProvider: DataProvider = {
   // 产品相关操作使用 API 路由
   getList: async (params) => {
     if (params.resource === "tb_product") {
-      const url = new URL(`/api/${params.resource}`, window.location.origin);
+      // 构建API URL
+      let apiUrl = `/api/products?`;
+      const params_arr: string[] = [];
 
       if (params.pagination) {
-        url.searchParams.set(
-          "page",
-          params.pagination.current?.toString() || "1"
-        );
-        url.searchParams.set(
-          "pageSize",
-          params.pagination.pageSize?.toString() || "10"
+        params_arr.push(`page=${params.pagination.current?.toString() || "1"}`);
+        params_arr.push(
+          `pageSize=${params.pagination.pageSize?.toString() || "10"}`
         );
       }
 
       if (params.sorters && params.sorters.length > 0) {
-        url.searchParams.set("sort", params.sorters[0].field);
-        url.searchParams.set("order", params.sorters[0].order);
+        params_arr.push(`sort=${params.sorters[0].field}`);
+        params_arr.push(`order=${params.sorters[0].order}`);
       }
 
-      const response = await fetch(url.toString());
+      apiUrl += params_arr.join("&");
+
+      // 添加缓存控制
+      const response = await fetch(apiUrl, {
+        cache: "default",
+        headers: {
+          "Cache-Control": "max-age=300", // 5分钟缓存
+        },
+      });
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -45,7 +52,7 @@ export const dataProvider: DataProvider = {
 
   getOne: async (params) => {
     if (params.resource === "tb_product") {
-      const response = await fetch(`/api/${params.resource}/${params.id}`);
+      const response = await fetch(`/api/products/${params.id}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -58,7 +65,7 @@ export const dataProvider: DataProvider = {
 
   create: async (params) => {
     if (params.resource === "tb_product") {
-      const response = await fetch(`/api/${params.resource}`, {
+      const response = await fetch(`/api/products`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -81,7 +88,7 @@ export const dataProvider: DataProvider = {
 
   update: async (params) => {
     if (params.resource === "tb_product") {
-      const response = await fetch(`/api/${params.resource}/${params.id}`, {
+      const response = await fetch(`/api/products/${params.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -104,7 +111,7 @@ export const dataProvider: DataProvider = {
 
   deleteOne: async (params) => {
     if (params.resource === "tb_product") {
-      const response = await fetch(`/api/${params.resource}/${params.id}`, {
+      const response = await fetch(`/api/products/${params.id}`, {
         method: "DELETE",
       });
 

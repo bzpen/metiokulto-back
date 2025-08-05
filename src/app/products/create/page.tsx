@@ -13,11 +13,17 @@ import {
 import { UploadOutlined, PlusOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import type { UploadProps, UploadFile } from "antd";
+import { generateImageKeywords } from "@/utils/supabase/storage";
 
 const { TextArea } = Input;
 const { Option } = Select;
 
 export default function ProductCreatePage() {
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [previewImage, setPreviewImage] = useState<string>("");
+  const [uploading, setUploading] = useState<boolean>(false);
+  const [imageKeywords, setImageKeywords] = useState<string>("");
+
   const { formProps, saveButtonProps, onFinish } = useForm({
     resource: "tb_product",
     onMutationSuccess: () => {
@@ -32,25 +38,65 @@ export default function ProductCreatePage() {
 
   // 自定义表单提交处理
   const handleFormSubmit = async (values: any) => {
-    // 处理图片数据
-    if (fileList.length > 0 && fileList[0].originFileObj) {
-      // 这里应该上传图片到您的存储服务
-      // 目前先用一个模拟的URL
-      const imageName = `product_${Date.now()}_${fileList[0].name}`;
-      values.image = `/images/products/${imageName}`;
-    }
+    try {
+      setUploading(true);
 
-    // 处理价格数据，确保是字符串格式
-    if (values.price) {
-      values.price = values.price.toString();
-    }
+      // 处理图片上传
+      if (fileList.length > 0 && fileList[0].originFileObj) {
+        const file = fileList[0].originFileObj;
 
-    // 调用原始的提交函数
-    return onFinish(values);
+        // 上传图片到Supabase Storage
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("folder", "products");
+
+        const uploadResponse = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json();
+          message.error("图片上传失败: " + errorData.error);
+          return;
+        }
+
+        const uploadResult = await uploadResponse.json();
+        values.image = uploadResult.url;
+        values.image_path = uploadResult.path;
+
+        // 生成并添加图片关键字
+        const autoKeywords = generateImageKeywords(
+          file.name,
+          values.name,
+          values.type
+        );
+
+        // 合并用户输入的关键字和自动生成的关键字
+        const userKeywords = imageKeywords
+          .split(",")
+          .map((k) => k.trim())
+          .filter((k) => k.length > 0);
+
+        const allKeywords = Array.from(
+          new Set([...autoKeywords, ...userKeywords])
+        );
+        values.image_keywords = allKeywords.join(",");
+      }
+
+      // 处理价格数据，确保是字符串格式
+      if (values.price) {
+        values.price = values.price.toString();
+      }
+
+      // 调用原始的提交函数
+      return onFinish(values);
+    } catch (error) {
+      message.error("提交失败: " + (error as Error).message);
+    } finally {
+      setUploading(false);
+    }
   };
-
-  const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const [previewImage, setPreviewImage] = useState<string>("");
 
   // 产品类型选项
   const productTypes = [
@@ -98,7 +144,7 @@ export default function ProductCreatePage() {
   };
 
   return (
-    <Create saveButtonProps={saveButtonProps}>
+    <Create saveButtonProps={{ ...saveButtonProps, loading: uploading }}>
       <Form {...formProps} layout="vertical" onFinish={handleFormSubmit}>
         <Form.Item
           label="产品名称"
@@ -144,7 +190,6 @@ export default function ProductCreatePage() {
             formatter={(value) =>
               `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
             }
-            parser={(value) => value!.replace(/\$\s?|(,*)/g, "")}
           />
         </Form.Item>
 
@@ -175,11 +220,14 @@ export default function ProductCreatePage() {
             maxCount={1}
             onChange={handleImageUpload}
             beforeUpload={beforeUpload}
+            disabled={uploading}
           >
             {fileList.length >= 1 ? null : (
               <div>
                 <PlusOutlined />
-                <div style={{ marginTop: 8 }}>上传图片</div>
+                <div style={{ marginTop: 8 }}>
+                  {uploading ? "上传中..." : "上传图片"}
+                </div>
               </div>
             )}
           </Upload>
@@ -198,6 +246,19 @@ export default function ProductCreatePage() {
               />
             </div>
           )}
+        </Form.Item>
+
+        <Form.Item
+          label="图片关键字"
+          name="image_keywords"
+          tooltip="用于SEO和搜索，多个关键字用逗号分隔。系统会自动生成一些关键字。"
+        >
+          <Input.TextArea
+            placeholder="请输入图片关键字，用逗号分隔 (例如: 高品质, 耐用, 环保)"
+            rows={2}
+            value={imageKeywords}
+            onChange={(e) => setImageKeywords(e.target.value)}
+          />
         </Form.Item>
 
         <Form.Item label="产品链接" name="href">

@@ -56,6 +56,42 @@ export default function ProductsPage() {
       key: "seo_name",
     },
     {
+      title: "图片关键字",
+      dataIndex: "image_keywords",
+      key: "image_keywords",
+      render: (keywords: string) =>
+        keywords ? (
+          <div style={{ maxWidth: 200 }}>
+            {keywords
+              .split(",")
+              .slice(0, 3)
+              .map((keyword, index) => (
+                <span
+                  key={index}
+                  style={{
+                    display: "inline-block",
+                    background: "#f0f0f0",
+                    padding: "2px 6px",
+                    margin: "2px",
+                    borderRadius: "4px",
+                    fontSize: "12px",
+                  }}
+                >
+                  {keyword.trim()}
+                </span>
+              ))}
+            {keywords.split(",").length > 3 && (
+              <span style={{ fontSize: "12px", color: "#999" }}>
+                +{keywords.split(",").length - 3}
+              </span>
+            )}
+          </div>
+        ) : (
+          <span style={{ color: "#ccc" }}>无</span>
+        ),
+      width: 200,
+    },
+    {
       title: "操作",
       key: "actions",
       render: (_: any, record: any) => (

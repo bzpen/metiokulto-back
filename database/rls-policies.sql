@@ -7,6 +7,18 @@ CREATE POLICY "Allow public read access on tb_product" ON public.tb_product
 CREATE POLICY "Allow service role full access on tb_product" ON public.tb_product
     USING (auth.role() = 'service_role');
 
+-- 允许服务角色插入产品数据
+CREATE POLICY "Allow service role insert on tb_product" ON public.tb_product
+    FOR INSERT WITH CHECK (auth.role() = 'service_role');
+
+-- 允许服务角色更新产品数据
+CREATE POLICY "Allow service role update on tb_product" ON public.tb_product
+    FOR UPDATE USING (auth.role() = 'service_role');
+
+-- 允许服务角色删除产品数据
+CREATE POLICY "Allow service role delete on tb_product" ON public.tb_product
+    FOR DELETE USING (auth.role() = 'service_role');
+
 -- 用户表 RLS 策略
 CREATE POLICY "Allow public read access on tb_user" ON public.tb_user
     FOR SELECT USING (true);

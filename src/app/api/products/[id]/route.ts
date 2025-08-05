@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
 interface RouteParams {
   params: {
@@ -9,17 +10,23 @@ interface RouteParams {
 // 获取单个产品
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    console.log("GET请求 - 产品ID:", params.id);
+
+    // 验证参数
+    if (!params.id) {
+      return NextResponse.json({ error: "产品ID不能为空" }, { status: 400 });
+    }
+
     // 检查环境变量
     if (
       !process.env.NEXT_PUBLIC_SUPABASE_URL ||
       !process.env.SUPABASE_SERVICE_ROLE_KEY
     ) {
+      console.error("环境变量缺失");
       return NextResponse.json({ error: "缺少环境变量配置" }, { status: 500 });
     }
 
-    // 动态导入 Supabase 客户端
-    const { createClient } = await import("@supabase/supabase-js");
-
+    // 创建 Supabase 客户端
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -31,6 +38,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       }
     );
 
+    console.log("正在查询产品:", params.id);
     const { data, error } = await supabase
       .from("tb_product")
       .select("*")
@@ -39,12 +47,21 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     if (error) {
       console.error("Supabase 查询错误:", error);
+      // 检查是否是找不到记录的错误
+      if (error.code === "PGRST116") {
+        return NextResponse.json({ error: "产品不存在" }, { status: 404 });
+      }
       return NextResponse.json(
         { error: "数据库查询失败: " + error.message },
         { status: 500 }
       );
     }
 
+    if (!data) {
+      return NextResponse.json({ error: "产品不存在" }, { status: 404 });
+    }
+
+    console.log("查询成功:", data);
     return NextResponse.json({
       data: data,
     });
@@ -70,8 +87,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     const body = await request.json();
 
-    // 动态导入 Supabase 客户端
-    const { createClient } = await import("@supabase/supabase-js");
+    // 创建 Supabase 客户端
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -92,6 +108,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         price: body.price?.toString(),
         type: body.type,
         image: body.image,
+        image_path: body.image_path,
+        image_keywords: body.image_keywords,
         href: body.href,
         describe: body.describe,
         fqa: body.fqa,
@@ -133,8 +151,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "缺少环境变量配置" }, { status: 500 });
     }
 
-    // 动态导入 Supabase 客户端
-    const { createClient } = await import("@supabase/supabase-js");
+    // 创建 Supabase 客户端
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

@@ -1,5 +1,5 @@
 import { DevtoolsProvider } from "@providers/devtools";
-import { GitHubBanner, Refine } from "@refinedev/core";
+import { Refine } from "@refinedev/core";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 import { ThemedLayoutV2, useNotificationProvider } from "@refinedev/antd";
 import routerProvider from "@refinedev/nextjs-router";
@@ -11,6 +11,8 @@ import zhCN from "antd/locale/zh_CN";
 import { authProviderClient } from "@providers/auth-provider/auth-provider.client";
 import { dataProvider } from "@providers/data-provider";
 import { CustomTitle } from "@components/CustomTitle";
+
+// 预加载关键CSS
 import "@refinedev/antd/dist/reset.css";
 import "@styles/global.css";
 
@@ -29,9 +31,27 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
+      <head>
+        {/* 预加载关键资源 */}
+        <link
+          rel="preload"
+          href="/api/products"
+          as="fetch"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="dns-prefetch"
+          href="https://iwdfzvfqbtokqetmbmbp.supabase.co"
+        />
+      </head>
       <body>
-        <Suspense>
-          <GitHubBanner />
+        <Suspense
+          fallback={
+            <div style={{ padding: "20px", textAlign: "center" }}>
+              加载中...
+            </div>
+          }
+        >
           <RefineKbarProvider>
             <ConfigProvider locale={zhCN}>
               <DevtoolsProvider>

@@ -116,6 +116,8 @@ export async function POST(request: NextRequest) {
         price: body.price.toString(),
         type: body.type,
         image: body.image || null,
+        image_path: body.image_path || null,
+        image_keywords: body.image_keywords || null,
         href: body.href || null,
         describe: body.describe || null,
         fqa: body.fqa || null,

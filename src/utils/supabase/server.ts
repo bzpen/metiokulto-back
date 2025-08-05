@@ -1,33 +1,91 @@
-import { CookieOptions, createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
-import { SUPABASE_KEY, SUPABASE_URL } from "./constants";
+import { createClient } from "@supabase/supabase-js";
 
-export const createSupabaseServerClient = () => {
-  const cookieStore = cookies();
-
-  return createServerClient(SUPABASE_URL, SUPABASE_KEY, {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value;
-      },
-      set(name: string, value: string, options: CookieOptions) {
-        try {
-          cookieStore.set({ name, value, ...options });
-        } catch (error) {
-          // The `set` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing
-          // user sessions.
-        }
-      },
-      remove(name: string, options: CookieOptions) {
-        try {
-          cookieStore.set({ name, value: "", ...options });
-        } catch (error) {
-          // The `delete` method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing
-          // user sessions.
-        }
-      },
+// 服务端 Supabase 客户端，使用服务密钥，可以绕过 RLS
+export const supabaseServer = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!, // 使用服务密钥
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
     },
-  });
+  }
+);
+
+// 类型定义
+export type Database = {
+  public: {
+    Tables: {
+      tb_product: {
+        Row: {
+          id: number;
+          name: string;
+          sku: string;
+          price: string;
+          type: string;
+          image?: string;
+          href?: string;
+          describe?: string;
+          fqa?: string;
+          video_url?: string;
+          seo_name: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Insert: {
+          name: string;
+          sku: string;
+          price: string;
+          type: string;
+          image?: string;
+          href?: string;
+          describe?: string;
+          fqa?: string;
+          video_url?: string;
+          seo_name: string;
+        };
+        Update: {
+          name?: string;
+          sku?: string;
+          price?: string;
+          type?: string;
+          image?: string;
+          href?: string;
+          describe?: string;
+          fqa?: string;
+          video_url?: string;
+          seo_name?: string;
+        };
+      };
+      tb_user: {
+        Row: {
+          id: number;
+          username: string;
+          email: string;
+          first_name?: string;
+          last_name?: string;
+          created_at?: string;
+        };
+      };
+      user_leave: {
+        Row: {
+          id: number;
+          first_name: string;
+          last_name: string;
+          email: string;
+          phone?: string;
+          topic: string;
+          content: string;
+          created_at?: string;
+        };
+      };
+      tb_eclub: {
+        Row: {
+          id: number;
+          email: string;
+          created_at?: string;
+        };
+      };
+    };
+  };
 };

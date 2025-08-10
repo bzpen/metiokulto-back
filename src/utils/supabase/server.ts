@@ -23,7 +23,11 @@ export type Database = {
           sku: string;
           price: string;
           type: string;
-          image?: string;
+
+          image_path?: string;
+          image_keywords?: string;
+          main_image?: string; // 新增：主图
+          images?: string[]; // 新增：图片列表（后端存 JSONB，前端类型为 string[]）
           href?: string;
           describe?: string;
           fqa?: string;
@@ -37,7 +41,11 @@ export type Database = {
           sku: string;
           price: string;
           type: string;
-          image?: string;
+
+          image_path?: string;
+          image_keywords?: string;
+          main_image?: string;
+          images?: string[];
           href?: string;
           describe?: string;
           fqa?: string;
@@ -49,7 +57,11 @@ export type Database = {
           sku?: string;
           price?: string;
           type?: string;
-          image?: string;
+
+          image_path?: string;
+          image_keywords?: string;
+          main_image?: string;
+          images?: string[];
           href?: string;
           describe?: string;
           fqa?: string;

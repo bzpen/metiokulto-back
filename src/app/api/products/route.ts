@@ -35,12 +35,12 @@ export async function GET(request: NextRequest) {
     );
 
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const pageSize = parseInt(searchParams.get("pageSize") || "10");
+    const page = Number.parseInt(searchParams.get("page") || "1");
+    const pageSize = Number.parseInt(searchParams.get("pageSize") || "10");
 
     // 计算偏移量
-    const from = (page - 1) * pageSize;
-    const to = from + pageSize - 1;
+    const from = Math.max(0, (page - 1) * pageSize);
+    const to = Math.max(from, from + pageSize - 1);
 
     // 查询数据
     const { data, error, count } = await supabase
@@ -51,7 +51,12 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error("Supabase 查询错误:", error);
       return NextResponse.json(
-        { error: "数据库查询失败: " + error.message },
+        {
+          error: "数据库查询失败: " + error.message,
+          code: (error as any).code,
+          details: (error as any).details,
+          hint: (error as any).hint,
+        },
         { status: 500 }
       );
     }
@@ -107,23 +112,35 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    // 插入数据
+    // 构造插入载荷（兼容不同数据库列版本）
+    const insertPayload: any = {
+      name: body.name,
+      sku: body.sku,
+      price: body.price.toString(),
+      type: body.type,
+      href: body.href || null,
+      describe: body.describe || null,
+      fqa: body.fqa || null,
+      video_url: body.video_url || null,
+      seo_name: body.seo_name,
+    };
+
+    if (Object.prototype.hasOwnProperty.call(body, "main_image")) {
+      insertPayload.main_image = body.main_image ?? null;
+    }
+    if (Object.prototype.hasOwnProperty.call(body, "images")) {
+      insertPayload.images = Array.isArray(body.images) ? body.images : null;
+    }
+    if (Object.prototype.hasOwnProperty.call(body, "image_path")) {
+      insertPayload.image_path = body.image_path || null;
+    }
+    if (Object.prototype.hasOwnProperty.call(body, "image_keywords")) {
+      insertPayload.image_keywords = body.image_keywords || null;
+    }
+
     const { data, error } = await supabase
       .from("tb_product")
-      .insert({
-        name: body.name,
-        sku: body.sku,
-        price: body.price.toString(),
-        type: body.type,
-        image: body.image || null,
-        image_path: body.image_path || null,
-        image_keywords: body.image_keywords || null,
-        href: body.href || null,
-        describe: body.describe || null,
-        fqa: body.fqa || null,
-        video_url: body.video_url || null,
-        seo_name: body.seo_name,
-      })
+      .insert(insertPayload)
       .select()
       .single();
 

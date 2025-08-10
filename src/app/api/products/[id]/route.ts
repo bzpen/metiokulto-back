@@ -39,10 +39,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     );
 
     console.log("正在查询产品:", params.id);
+    const productId = Number(params.id);
+    if (!Number.isFinite(productId)) {
+      return NextResponse.json({ error: "产品ID格式不正确" }, { status: 400 });
+    }
     const { data, error } = await supabase
       .from("tb_product")
       .select("*")
-      .eq("id", params.id)
+      .eq("id", productId)
       .single();
 
     if (error) {
@@ -52,7 +56,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         return NextResponse.json({ error: "产品不存在" }, { status: 404 });
       }
       return NextResponse.json(
-        { error: "数据库查询失败: " + error.message },
+        {
+          error: "数据库查询失败: " + error.message,
+          code: (error as any).code,
+          details: (error as any).details,
+          hint: (error as any).hint,
+        },
         { status: 500 }
       );
     }
@@ -86,6 +95,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json();
+    const productId = Number(params.id);
+    if (!Number.isFinite(productId)) {
+      return NextResponse.json({ error: "产品ID格式不正确" }, { status: 400 });
+    }
 
     // 创建 Supabase 客户端
 
@@ -100,30 +113,47 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       }
     );
 
+    const updatePayload: any = {
+      name: body.name,
+      sku: body.sku,
+      price: body.price?.toString(),
+      type: body.type,
+      href: body.href,
+      describe: body.describe,
+      fqa: body.fqa,
+      video_url: body.video_url,
+      seo_name: body.seo_name,
+    };
+
+    if (Object.prototype.hasOwnProperty.call(body, "main_image")) {
+      updatePayload.main_image = body.main_image ?? null;
+    }
+    if (Object.prototype.hasOwnProperty.call(body, "images")) {
+      updatePayload.images = Array.isArray(body.images) ? body.images : null;
+    }
+    if (Object.prototype.hasOwnProperty.call(body, "image_path")) {
+      updatePayload.image_path = body.image_path ?? null;
+    }
+    if (Object.prototype.hasOwnProperty.call(body, "image_keywords")) {
+      updatePayload.image_keywords = body.image_keywords ?? null;
+    }
+
     const { data, error } = await supabase
       .from("tb_product")
-      .update({
-        name: body.name,
-        sku: body.sku,
-        price: body.price?.toString(),
-        type: body.type,
-        image: body.image,
-        image_path: body.image_path,
-        image_keywords: body.image_keywords,
-        href: body.href,
-        describe: body.describe,
-        fqa: body.fqa,
-        video_url: body.video_url,
-        seo_name: body.seo_name,
-      })
-      .eq("id", params.id)
+      .update(updatePayload)
+      .eq("id", productId)
       .select()
       .single();
 
     if (error) {
       console.error("Supabase 更新错误:", error);
       return NextResponse.json(
-        { error: "数据库更新失败: " + error.message },
+        {
+          error: "数据库更新失败: " + error.message,
+          code: (error as any).code,
+          details: (error as any).details,
+          hint: (error as any).hint,
+        },
         { status: 500 }
       );
     }
@@ -164,17 +194,27 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       }
     );
 
+    const productId = Number(params.id);
+    if (!Number.isFinite(productId)) {
+      return NextResponse.json({ error: "产品ID格式不正确" }, { status: 400 });
+    }
+
     const { data, error } = await supabase
       .from("tb_product")
       .delete()
-      .eq("id", params.id)
+      .eq("id", productId)
       .select()
       .single();
 
     if (error) {
       console.error("Supabase 删除错误:", error);
       return NextResponse.json(
-        { error: "数据库删除失败: " + error.message },
+        {
+          error: "数据库删除失败: " + error.message,
+          code: (error as any).code,
+          details: (error as any).details,
+          hint: (error as any).hint,
+        },
         { status: 500 }
       );
     }

@@ -9,9 +9,12 @@ import {
   Upload,
   Button,
   message,
+  Tooltip,
+  Tag,
 } from "antd";
-import { UploadOutlined, PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined } from "@ant-design/icons";
 import { useState } from "react";
+import type { ReactElement } from "react";
 import type { UploadProps, UploadFile } from "antd";
 import { generateImageKeywords } from "@/utils/supabase/storage";
 
@@ -23,6 +26,7 @@ export default function ProductCreatePage() {
   const [previewImage, setPreviewImage] = useState<string>("");
   const [uploading, setUploading] = useState<boolean>(false);
   const [imageKeywords, setImageKeywords] = useState<string>("");
+  const [galleryFileList, setGalleryFileList] = useState<UploadFile[]>([]);
 
   const { formProps, saveButtonProps, onFinish } = useForm({
     resource: "tb_product",
@@ -62,7 +66,7 @@ export default function ProductCreatePage() {
         }
 
         const uploadResult = await uploadResponse.json();
-        values.image = uploadResult.url;
+        values.main_image = uploadResult.url;
         values.image_path = uploadResult.path;
 
         // 生成并添加图片关键字
@@ -84,9 +88,58 @@ export default function ProductCreatePage() {
         values.image_keywords = allKeywords.join(",");
       }
 
+      // 处理图片列表多图上传
+      const inputImages: string[] = Array.isArray(values.images)
+        ? values.images.filter(
+            (x: any) => typeof x === "string" && x.trim().length > 0
+          )
+        : [];
+
+      const urlsFromExisting: string[] = galleryFileList
+        .map((f) => (typeof f.url === "string" ? f.url : ""))
+        .filter((u) => u);
+
+      const filesToUpload = galleryFileList.filter((f) => !!f.originFileObj);
+      const uploadedUrls: string[] = [];
+      for (const f of filesToUpload) {
+        const fd = new FormData();
+        fd.append("file", f.originFileObj as File);
+        fd.append("folder", "products");
+        const resp = await fetch("/api/upload", { method: "POST", body: fd });
+        if (!resp.ok) {
+          const err = await resp.json();
+          message.error("图片上传失败: " + err.error);
+          return;
+        }
+        const r = await resp.json();
+        uploadedUrls.push(r.url);
+      }
+
+      const allImages: string[] = Array.from(
+        new Set([
+          ...(inputImages as string[]),
+          ...urlsFromExisting,
+          ...uploadedUrls,
+        ])
+      );
+      if (allImages.length > 0) {
+        values.images = allImages;
+        if (!values.main_image) {
+          values.main_image = allImages[0];
+        }
+      }
+
       // 处理价格数据，确保是字符串格式
       if (values.price) {
         values.price = values.price.toString();
+      }
+
+      // 确保 images 为数组
+      if (values.images && !Array.isArray(values.images)) {
+        values.images = [values.images];
+      }
+      if (!values.images && values.main_image) {
+        values.images = [values.main_image];
       }
 
       // 调用原始的提交函数
@@ -106,7 +159,7 @@ export default function ProductCreatePage() {
     { value: "accessories", label: "配件" },
   ];
 
-  // 处理图片上传
+  // 处理图片上传（主图）
   const handleImageUpload: UploadProps["onChange"] = ({
     fileList: newFileList,
   }) => {
@@ -123,6 +176,13 @@ export default function ProductCreatePage() {
     } else {
       setPreviewImage("");
     }
+  };
+
+  // 处理图片列表多图上传
+  const handleGalleryChange: UploadProps["onChange"] = ({
+    fileList: newList,
+  }) => {
+    setGalleryFileList(newList);
   };
 
   // 上传前的验证
@@ -212,9 +272,9 @@ export default function ProductCreatePage() {
           </Select>
         </Form.Item>
 
-        <Form.Item label="产品图片" name="image">
+        <Form.Item label="主图" name="main_image">
           <Upload
-            name="image"
+            name="main_image"
             listType="picture-card"
             fileList={fileList}
             maxCount={1}
@@ -226,14 +286,14 @@ export default function ProductCreatePage() {
               <div>
                 <PlusOutlined />
                 <div style={{ marginTop: 8 }}>
-                  {uploading ? "上传中..." : "上传图片"}
+                  {uploading ? "上传中..." : "上传主图"}
                 </div>
               </div>
             )}
           </Upload>
           {previewImage && (
             <div style={{ marginTop: 16 }}>
-              <p>图片预览：</p>
+              <p>主图预览：</p>
               <img
                 src={previewImage}
                 alt="预览"
@@ -248,6 +308,13 @@ export default function ProductCreatePage() {
           )}
         </Form.Item>
 
+        <div style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
+          <b style={{ marginRight: 12 }}>图片列表</b>
+          <span style={{ color: "#999", fontSize: 12 }}>
+            支持批量上传，点击星标设为主图
+          </span>
+        </div>
+
         <Form.Item
           label="图片关键字"
           name="image_keywords"
@@ -260,6 +327,132 @@ export default function ProductCreatePage() {
             onChange={(e) => setImageKeywords(e.target.value)}
           />
         </Form.Item>
+
+        <Upload
+          listType="picture-card"
+          multiple
+          fileList={galleryFileList}
+          onChange={handleGalleryChange}
+          beforeUpload={beforeUpload}
+          accept="image/*"
+          showUploadList={{ showPreviewIcon: false, showRemoveIcon: false }}
+          className="gallery-upload"
+          itemRender={(
+            originNode: ReactElement,
+            file: UploadFile,
+            _fileList: UploadFile[],
+            actions: { remove?: () => void }
+          ) => (
+            <div className="custom-upload-item">
+              {originNode}
+              {!!(
+                file.url &&
+                formProps?.form?.getFieldValue("main_image") === file.url
+              ) && (
+                <div style={{ position: "absolute", top: 4, left: 4 }}>
+                  <Tag color="green" style={{ margin: 0 }}>
+                    主图
+                  </Tag>
+                </div>
+              )}
+              <div className="actions">
+                <Button
+                  size="small"
+                  onClick={() => {
+                    const url = (file.url as string) || previewImage;
+                    if (url) {
+                      formProps?.form?.setFieldsValue({ main_image: url });
+                      setPreviewImage(url);
+                      message.success("已设为主图");
+                    }
+                  }}
+                >
+                  设为主图
+                </Button>
+                <Button size="small" danger onClick={() => actions.remove?.()}>
+                  删除
+                </Button>
+              </div>
+            </div>
+          )}
+        >
+          {galleryFileList.length >= 12 ? null : (
+            <div>
+              <PlusOutlined />
+              <div style={{ marginTop: 8 }}>批量上传图片</div>
+            </div>
+          )}
+        </Upload>
+
+        <style jsx>{`
+          :global(
+              .gallery-upload
+                .ant-upload-list-picture-card
+                .ant-upload-list-item
+            ) {
+            width: 200px;
+            height: 200px;
+            border-radius: 10px;
+          }
+          :global(.gallery-upload .ant-upload-list-item-container),
+          :global(.gallery-upload .list-item-container) {
+            width: auto !important;
+            height: auto !important;
+          }
+          :global(.gallery-upload .ant-upload-select-picture-card) {
+            width: 200px !important;
+            height: 200px !important;
+            border-radius: 10px !important;
+          }
+          :global(
+              .gallery-upload
+                .ant-upload-list-picture-card
+                .ant-upload-list-item
+                .ant-upload-list-item-thumbnail
+                img
+            ) {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+          }
+          .custom-upload-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+          }
+          .custom-upload-item .actions {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            padding: 8px;
+            background: linear-gradient(
+              to top,
+              rgba(0, 0, 0, 0.45),
+              rgba(0, 0, 0, 0)
+            );
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 2;
+            pointer-events: none;
+          }
+          .custom-upload-item:hover .actions {
+            opacity: 1;
+          }
+          .custom-upload-item .actions :global(.ant-btn) {
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(0, 0, 0, 0.35);
+            pointer-events: auto;
+          }
+          .custom-upload-item .actions :global(.ant-btn-dangerous) {
+            border-color: rgba(255, 255, 255, 0.6);
+          }
+        `}</style>
 
         <Form.Item label="产品链接" name="href">
           <Input placeholder="请输入产品详情页链接" />

@@ -51,6 +51,34 @@ export default function ProductsPage() {
       key: "type",
     },
     {
+      title: "主图",
+      dataIndex: "main_image",
+      key: "main_image",
+      render: (url: string) =>
+        url ? (
+          <img
+            src={url}
+            alt="主图"
+            style={{
+              width: 48,
+              height: 48,
+              objectFit: "cover",
+              borderRadius: 4,
+            }}
+          />
+        ) : (
+          <span style={{ color: "#ccc" }}>无</span>
+        ),
+      width: 80,
+    },
+    {
+      title: "图片数",
+      dataIndex: "images",
+      key: "images",
+      render: (images: string[]) => (Array.isArray(images) ? images.length : 0),
+      width: 80,
+    },
+    {
       title: "SEO名称",
       dataIndex: "seo_name",
       key: "seo_name",

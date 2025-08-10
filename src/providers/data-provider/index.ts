@@ -31,11 +31,11 @@ export const dataProvider: DataProvider = {
 
       apiUrl += params_arr.join("&");
 
-      // 添加缓存控制
+      // 关闭浏览器缓存，确保列表是最新的
       const response = await fetch(apiUrl, {
-        cache: "default",
+        cache: "no-store",
         headers: {
-          "Cache-Control": "max-age=300", // 5分钟缓存
+          "Cache-Control": "no-store",
         },
       });
 

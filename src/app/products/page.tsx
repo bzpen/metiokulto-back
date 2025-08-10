@@ -1,7 +1,8 @@
 "use client";
 
+import React from "react";
 import { List, useTable } from "@refinedev/antd";
-import { Table, Space, Button, Typography } from "antd";
+import { Table, Space, Button, Typography, Popconfirm, message } from "antd";
 import {
   EditOutlined,
   DeleteOutlined,
@@ -14,8 +15,9 @@ const { Title } = Typography;
 
 export default function ProductsPage() {
   const router = useRouter();
+  const [deletingId, setDeletingId] = React.useState<number | null>(null);
 
-  const { tableProps } = useTable({
+  const { tableProps, tableQueryResult } = useTable({
     resource: "tb_product",
   });
 
@@ -124,7 +126,12 @@ export default function ProductsPage() {
       key: "actions",
       render: (_: any, record: any) => (
         <Space size="middle">
-          <Button type="primary" icon={<EyeOutlined />} size="small">
+          <Button
+            type="primary"
+            icon={<EyeOutlined />}
+            size="small"
+            onClick={() => router.push(`/products/view/${record.id}`)}
+          >
             查看
           </Button>
           <Button
@@ -135,9 +142,41 @@ export default function ProductsPage() {
           >
             编辑
           </Button>
-          <Button type="primary" danger icon={<DeleteOutlined />} size="small">
-            删除
-          </Button>
+          <Popconfirm
+            title="确认删除该产品？"
+            okText="删除"
+            okButtonProps={{ danger: true }}
+            cancelText="取消"
+            onConfirm={async () => {
+              try {
+                setDeletingId(record.id);
+                const res = await fetch(`/api/products/${record.id}`, {
+                  method: "DELETE",
+                });
+                if (!res.ok) {
+                  const e = await res.json();
+                  throw new Error(e.error || `HTTP ${res.status}`);
+                }
+                message.success("删除成功");
+                // 强制刷新 refine 的数据源
+                await tableQueryResult?.refetch?.();
+              } catch (e) {
+                message.error("删除失败: " + (e as Error).message);
+              } finally {
+                setDeletingId(null);
+              }
+            }}
+          >
+            <Button
+              type="primary"
+              danger
+              icon={<DeleteOutlined />}
+              size="small"
+              loading={deletingId === record.id}
+            >
+              删除
+            </Button>
+          </Popconfirm>
         </Space>
       ),
     },

@@ -24,6 +24,7 @@ interface Product {
   sku: string;
   price: string;
   type: string;
+  type_info?: { type_key: string; type_label: string };
   main_image?: string;
   images?: string[];
   href?: string;
@@ -43,13 +44,23 @@ export default function ProductViewPage({ params }: Props) {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // 优先使用详情接口
         const res = await fetch(`/api/products/${params.id}`);
-        if (!res.ok) {
-          const e = await res.json();
-          throw new Error(e.error || `HTTP ${res.status}`);
+        if (res.ok) {
+          const json = await res.json();
+          setData(json.data);
+          return;
         }
-        const json = await res.json();
-        setData(json.data);
+        // 失败则兜底用列表接口按 id 精确查询
+        const res2 = await fetch(`/api/products?id=${params.id}`);
+        if (!res2.ok) {
+          const e = await res2.json();
+          throw new Error(e.error || `HTTP ${res2.status}`);
+        }
+        const json2 = await res2.json();
+        const item = Array.isArray(json2.data) ? json2.data[0] : null;
+        if (!item) throw new Error("未找到产品");
+        setData(item);
       } catch (e) {
         setError((e as Error).message);
       } finally {
@@ -77,7 +88,9 @@ export default function ProductViewPage({ params }: Props) {
           <Descriptions.Item label="产品名称">{data.name}</Descriptions.Item>
           <Descriptions.Item label="SKU">{data.sku}</Descriptions.Item>
           <Descriptions.Item label="价格">¥{data.price}</Descriptions.Item>
-          <Descriptions.Item label="类型">{data.type}</Descriptions.Item>
+          <Descriptions.Item label="类型">
+            {data.type_info?.type_label || data.type || "-"}
+          </Descriptions.Item>
           <Descriptions.Item label="SEO名称">{data.seo_name}</Descriptions.Item>
           <Descriptions.Item label="产品链接">
             {data.href || "-"}

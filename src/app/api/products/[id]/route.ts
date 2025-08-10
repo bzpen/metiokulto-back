@@ -43,37 +43,61 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (!Number.isFinite(productId)) {
       return NextResponse.json({ error: "产品ID格式不正确" }, { status: 400 });
     }
-    const { data, error } = await supabase
-      .from("tb_product")
-      .select("*")
-      .eq("id", productId)
-      .single();
+    let data: any | null = null;
+    try {
+      const r = await supabase
+        .from("tb_product")
+        .select("*")
+        .eq("id", productId)
+        .single();
+      if (r.error) throw r.error;
+      data = r.data;
+    } catch (e) {
+      console.error("Supabase 查询错误:", e);
+      // 兜底：尝试通过列表端点查询一次，避免偶发 fetch failed
+      try {
+        const origin = new URL(request.url).origin;
+        const res = await fetch(`${origin}/api/products?id=${productId}`);
+        if (res.ok) {
+          const json = await res.json();
+          data = Array.isArray(json.data) ? json.data[0] : null;
+        }
+      } catch (_) {}
 
-    if (error) {
-      console.error("Supabase 查询错误:", error);
-      // 检查是否是找不到记录的错误
-      if (error.code === "PGRST116") {
-        return NextResponse.json({ error: "产品不存在" }, { status: 404 });
+      if (!data) {
+        const err = e as any;
+        // 找不到记录
+        if (err?.code === "PGRST116") {
+          return NextResponse.json({ error: "产品不存在" }, { status: 404 });
+        }
+        return NextResponse.json(
+          {
+            error: "数据库查询失败: " + String(err?.message || err),
+            code: err?.code,
+            details: err?.details,
+            hint: err?.hint,
+          },
+          { status: 500 }
+        );
       }
-      return NextResponse.json(
-        {
-          error: "数据库查询失败: " + error.message,
-          code: (error as any).code,
-          details: (error as any).details,
-          hint: (error as any).hint,
-        },
-        { status: 500 }
-      );
     }
 
-    if (!data) {
-      return NextResponse.json({ error: "产品不存在" }, { status: 404 });
+    // 追加类型信息
+    let enriched = data as any;
+    const { data: t } = await supabase
+      .from("tb_product_type")
+      .select("type_key, type_label")
+      .eq("type_key", enriched.type)
+      .single();
+    if (t) {
+      enriched = {
+        ...enriched,
+        type_info: { type_key: t.type_key, type_label: t.type_label },
+      };
     }
 
-    console.log("查询成功:", data);
-    return NextResponse.json({
-      data: data,
-    });
+    console.log("查询成功:", enriched);
+    return NextResponse.json({ data: enriched });
   } catch (error) {
     console.error("获取产品详情失败:", error);
     return NextResponse.json(

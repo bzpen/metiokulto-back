@@ -72,6 +72,16 @@ export default function RootLayout({
                       },
                     },
                     {
+                      name: "tb_product_type",
+                      list: "/product-types",
+                      create: "/product-types/create",
+                      edit: "/product-types/edit/:id",
+                      meta: {
+                        label: "产品类型",
+                        icon: "🧩",
+                      },
+                    },
+                    {
                       name: "tb_user",
                       list: "/users",
                       meta: {

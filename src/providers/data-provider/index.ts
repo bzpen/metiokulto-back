@@ -12,9 +12,16 @@ export const dataProvider: DataProvider = {
 
   // 产品相关操作使用 API 路由
   getList: async (params) => {
-    if (params.resource === "tb_product") {
+    if (
+      params.resource === "tb_product" ||
+      params.resource === "tb_product_type"
+    ) {
       // 构建API URL
-      let apiUrl = `/api/products?`;
+      let apiUrl = `${
+        params.resource === "tb_product"
+          ? "/api/products"
+          : "/api/product-types"
+      }?`;
       const params_arr: string[] = [];
 
       if (params.pagination) {
@@ -51,8 +58,15 @@ export const dataProvider: DataProvider = {
   },
 
   getOne: async (params) => {
-    if (params.resource === "tb_product") {
-      const response = await fetch(`/api/products/${params.id}`);
+    if (
+      params.resource === "tb_product" ||
+      params.resource === "tb_product_type"
+    ) {
+      const base =
+        params.resource === "tb_product"
+          ? "/api/products"
+          : "/api/product-types";
+      const response = await fetch(`${base}/${params.id}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -64,8 +78,15 @@ export const dataProvider: DataProvider = {
   },
 
   create: async (params) => {
-    if (params.resource === "tb_product") {
-      const response = await fetch(`/api/products`, {
+    if (
+      params.resource === "tb_product" ||
+      params.resource === "tb_product_type"
+    ) {
+      const base =
+        params.resource === "tb_product"
+          ? "/api/products"
+          : "/api/product-types";
+      const response = await fetch(base, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -87,8 +108,15 @@ export const dataProvider: DataProvider = {
   },
 
   update: async (params) => {
-    if (params.resource === "tb_product") {
-      const response = await fetch(`/api/products/${params.id}`, {
+    if (
+      params.resource === "tb_product" ||
+      params.resource === "tb_product_type"
+    ) {
+      const base =
+        params.resource === "tb_product"
+          ? "/api/products"
+          : "/api/product-types";
+      const response = await fetch(`${base}/${params.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -110,8 +138,15 @@ export const dataProvider: DataProvider = {
   },
 
   deleteOne: async (params) => {
-    if (params.resource === "tb_product") {
-      const response = await fetch(`/api/products/${params.id}`, {
+    if (
+      params.resource === "tb_product" ||
+      params.resource === "tb_product_type"
+    ) {
+      const base =
+        params.resource === "tb_product"
+          ? "/api/products"
+          : "/api/product-types";
+      const response = await fetch(`${base}/${params.id}`, {
         method: "DELETE",
       });
 

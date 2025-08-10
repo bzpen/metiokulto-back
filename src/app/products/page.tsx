@@ -49,8 +49,9 @@ export default function ProductsPage() {
     },
     {
       title: "类型",
-      dataIndex: "type",
       key: "type",
+      render: (_: any, record: any) =>
+        record?.type_info?.type_label || record?.type || "-",
     },
     {
       title: "主图",

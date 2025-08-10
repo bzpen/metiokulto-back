@@ -13,7 +13,7 @@ import {
   Tag,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { ReactElement } from "react";
 import type { UploadProps, UploadFile } from "antd";
 import { generateImageKeywords } from "@/utils/supabase/storage";
@@ -152,12 +152,21 @@ export default function ProductCreatePage() {
   };
 
   // 产品类型选项
-  const productTypes = [
-    { value: "stair_treads", label: "楼梯踏板" },
-    { value: "stair_risers", label: "楼梯立板" },
-    { value: "stair_nosing", label: "楼梯防滑条" },
-    { value: "accessories", label: "配件" },
-  ];
+  const [productTypes, setProductTypes] = useState<
+    { value: string; label: string }[]
+  >([]);
+  useEffect(() => {
+    fetch("/api/product-types")
+      .then((r) => r.json())
+      .then((j) => {
+        const list = (j.data || []).map((x: any) => ({
+          value: x.type_key,
+          label: x.type_label,
+        }));
+        setProductTypes(list);
+      })
+      .catch(() => setProductTypes([]));
+  }, []);
 
   // 处理图片上传（主图）
   const handleImageUpload: UploadProps["onChange"] = ({

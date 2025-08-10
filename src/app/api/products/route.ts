@@ -37,16 +37,20 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = Number.parseInt(searchParams.get("page") || "1");
     const pageSize = Number.parseInt(searchParams.get("pageSize") || "10");
+    const filterId = searchParams.get("id");
 
     // 计算偏移量
     const from = Math.max(0, (page - 1) * pageSize);
     const to = Math.max(from, from + pageSize - 1);
 
     // 查询数据
-    const { data, error, count } = await supabase
-      .from("tb_product")
-      .select("*", { count: "exact" })
-      .range(from, to);
+    let query = supabase.from("tb_product").select("*", { count: "exact" });
+    if (filterId) {
+      query = query.eq("id", filterId);
+    } else {
+      query = query.range(from, to);
+    }
+    const { data, error, count } = await query;
 
     if (error) {
       console.error("Supabase 查询错误:", error);
@@ -61,10 +65,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
-      data: data || [],
-      total: count || 0,
-    });
+    // 手动补充类型信息，避免依赖数据库外键关系缓存
+    let enriched = data || [];
+    const { data: types } = await supabase
+      .from("tb_product_type")
+      .select("type_key, type_label");
+    if (types && enriched.length > 0) {
+      const map = new Map(types.map((t: any) => [t.type_key, t.type_label]));
+      enriched = enriched.map((p: any) => ({
+        ...p,
+        type_info: { type_key: p.type, type_label: map.get(p.type) || p.type },
+      }));
+    }
+
+    return NextResponse.json({ data: enriched, total: count || 0 });
   } catch (error) {
     console.error("获取产品列表失败:", error);
     return NextResponse.json(

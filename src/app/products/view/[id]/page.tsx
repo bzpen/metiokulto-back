@@ -45,14 +45,20 @@ export default function ProductViewPage({ params }: Props) {
     const fetchData = async () => {
       try {
         // 优先使用详情接口
-        const res = await fetch(`/api/products/${params.id}`);
+        const res = await fetch(`/api/products/${params.id}`, {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-store" },
+        });
         if (res.ok) {
           const json = await res.json();
           setData(json.data);
           return;
         }
         // 失败则兜底用列表接口按 id 精确查询
-        const res2 = await fetch(`/api/products?id=${params.id}`);
+        const res2 = await fetch(`/api/products?id=${params.id}`, {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-store" },
+        });
         if (!res2.ok) {
           const e = await res2.json();
           throw new Error(e.error || `HTTP ${res2.status}`);

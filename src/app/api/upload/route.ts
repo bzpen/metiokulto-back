@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+export const runtime = "nodejs";
 import { createClient } from "@supabase/supabase-js";
 
 // 图片上传API路由
@@ -78,17 +82,31 @@ export async function POST(request: NextRequest) {
       .from("metiokulto")
       .getPublicUrl(filePath);
 
-    return NextResponse.json({
-      success: true,
-      url: urlData.publicUrl,
-      path: filePath,
-      fileName: fileName,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        url: urlData.publicUrl,
+        path: filePath,
+        fileName: fileName,
+      },
+      {
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json(
       { error: "上传失败: " + (error as Error).message },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
     );
   }
 }

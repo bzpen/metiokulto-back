@@ -42,6 +42,8 @@ export default function ProductTypesPage() {
                 setDeletingId(record.id);
                 const res = await fetch(`/api/product-types/${record.id}`, {
                   method: "DELETE",
+                  cache: "no-store",
+                  headers: { "Cache-Control": "no-store" },
                 });
                 if (!res.ok) {
                   const e = await res.json();

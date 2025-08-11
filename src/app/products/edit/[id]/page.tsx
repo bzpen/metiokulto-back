@@ -127,7 +127,12 @@ export default function ProductEditPage({ params }: Props) {
         const fd = new FormData();
         fd.append("file", fileList[0].originFileObj as File);
         fd.append("folder", "products");
-        const resp = await fetch("/api/upload", { method: "POST", body: fd });
+        const resp = await fetch("/api/upload", {
+          method: "POST",
+          body: fd,
+          cache: "no-store",
+          headers: { "Cache-Control": "no-store" },
+        });
         if (!resp.ok) {
           const err = await resp.json();
           message.error("主图上传失败: " + err.error);
@@ -155,7 +160,12 @@ export default function ProductEditPage({ params }: Props) {
         const fd = new FormData();
         fd.append("file", f.originFileObj as File);
         fd.append("folder", "products");
-        const resp = await fetch("/api/upload", { method: "POST", body: fd });
+        const resp = await fetch("/api/upload", {
+          method: "POST",
+          body: fd,
+          cache: "no-store",
+          headers: { "Cache-Control": "no-store" },
+        });
         if (!resp.ok) {
           const err = await resp.json();
           message.error("图片上传失败: " + err.error);

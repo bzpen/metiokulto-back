@@ -1,7 +1,9 @@
 "use client";
 
 import { List, useTable } from "@refinedev/antd";
-import { Table, Space, Button, Tag, Tooltip } from "antd";
+import { useInvalidate } from "@refinedev/core";
+import { Table, Space, Button, Tag, Tooltip, message } from "antd";
+import { useRouter } from "next/navigation";
 import {
   EyeOutlined,
   DeleteOutlined,
@@ -11,12 +13,14 @@ import {
 import dayjs from "dayjs";
 
 export default function MessagesPage() {
-  const { tableProps } = useTable({
+  const invalidate = useInvalidate();
+  const router = useRouter();
+  const { tableProps, tableQueryResult } = useTable({
     resource: "user_leave",
     sorters: {
       initial: [
         {
-          field: "created_at",
+          field: "id",
           order: "desc",
         },
       ],
@@ -87,31 +91,65 @@ export default function MessagesPage() {
     },
     {
       title: "提交时间",
-      dataIndex: "created_at",
       key: "created_at",
-      render: (date: string) => (
-        <div>
-          <div>{dayjs(date).format("YYYY-MM-DD")}</div>
-          <div style={{ fontSize: "12px", color: "#666" }}>
-            {dayjs(date).format("HH:mm:ss")}
+      render: (_: any, record: any) => {
+        const date =
+          record.created_at || record.createdAt || record.inserted_at;
+        return (
+          <div>
+            <div>{date ? dayjs(date).format("YYYY-MM-DD") : "-"}</div>
+            <div style={{ fontSize: "12px", color: "#666" }}>
+              {date ? dayjs(date).format("HH:mm:ss") : ""}
+            </div>
           </div>
-        </div>
-      ),
-    },
-    {
-      title: "状态",
-      key: "status",
-      render: () => <Tag color="orange">待处理</Tag>,
+        );
+      },
     },
     {
       title: "操作",
       key: "actions",
       render: (_: any, record: any) => (
         <Space size="middle">
-          <Button type="primary" icon={<EyeOutlined />} size="small">
+          <Button
+            type="primary"
+            icon={<EyeOutlined />}
+            size="small"
+            onClick={() => router.push(`/messages/view/${record.id}`)}
+          >
             查看详情
           </Button>
-          <Button type="primary" danger icon={<DeleteOutlined />} size="small">
+          <Button
+            type="default"
+            icon={<EyeOutlined />}
+            size="small"
+            onClick={() => router.push(`/messages/edit/${record.id}`)}
+          >
+            编辑
+          </Button>
+          <Button
+            type="primary"
+            danger
+            icon={<DeleteOutlined />}
+            size="small"
+            onClick={async () => {
+              if (!confirm("确认删除该留言？")) return;
+              try {
+                const res = await fetch(`/api/user-leave/${record.id}`, {
+                  method: "DELETE",
+                  cache: "no-store",
+                  headers: { "Cache-Control": "no-store" },
+                });
+                if (!res.ok) {
+                  const e = await res.json();
+                  throw new Error(e.error || `HTTP ${res.status}`);
+                }
+                message.success("删除成功");
+                await tableQueryResult?.refetch?.();
+              } catch (e) {
+                alert("删除失败: " + (e as Error).message);
+              }
+            }}
+          >
             删除
           </Button>
         </Space>

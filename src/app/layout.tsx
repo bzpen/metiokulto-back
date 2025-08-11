@@ -92,6 +92,8 @@ export default function RootLayout({
                     {
                       name: "user_leave",
                       list: "/messages",
+                      edit: "/messages/edit/:id",
+                      show: "/messages/view/:id",
                       meta: {
                         label: "用户留言",
                         icon: "💬",

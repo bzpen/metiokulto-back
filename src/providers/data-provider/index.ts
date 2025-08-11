@@ -14,13 +14,16 @@ export const dataProvider: DataProvider = {
   getList: async (params) => {
     if (
       params.resource === "tb_product" ||
-      params.resource === "tb_product_type"
+      params.resource === "tb_product_type" ||
+      params.resource === "user_leave"
     ) {
       // 构建API URL
       let apiUrl = `${
         params.resource === "tb_product"
           ? "/api/products"
-          : "/api/product-types"
+          : params.resource === "tb_product_type"
+          ? "/api/product-types"
+          : "/api/user-leave"
       }?`;
       const params_arr: string[] = [];
 
@@ -60,12 +63,15 @@ export const dataProvider: DataProvider = {
   getOne: async (params) => {
     if (
       params.resource === "tb_product" ||
-      params.resource === "tb_product_type"
+      params.resource === "tb_product_type" ||
+      params.resource === "user_leave"
     ) {
       const base =
         params.resource === "tb_product"
           ? "/api/products"
-          : "/api/product-types";
+          : params.resource === "tb_product_type"
+          ? "/api/product-types"
+          : "/api/user-leave";
       const response = await fetch(`${base}/${params.id}`, {
         cache: "no-store",
         headers: { "Cache-Control": "no-store" },
@@ -83,12 +89,15 @@ export const dataProvider: DataProvider = {
   create: async (params) => {
     if (
       params.resource === "tb_product" ||
-      params.resource === "tb_product_type"
+      params.resource === "tb_product_type" ||
+      params.resource === "user_leave"
     ) {
       const base =
         params.resource === "tb_product"
           ? "/api/products"
-          : "/api/product-types";
+          : params.resource === "tb_product_type"
+          ? "/api/product-types"
+          : "/api/user-leave";
       const response = await fetch(base, {
         method: "POST",
         headers: {
@@ -115,12 +124,15 @@ export const dataProvider: DataProvider = {
   update: async (params) => {
     if (
       params.resource === "tb_product" ||
-      params.resource === "tb_product_type"
+      params.resource === "tb_product_type" ||
+      params.resource === "user_leave"
     ) {
       const base =
         params.resource === "tb_product"
           ? "/api/products"
-          : "/api/product-types";
+          : params.resource === "tb_product_type"
+          ? "/api/product-types"
+          : "/api/user-leave";
       const response = await fetch(`${base}/${params.id}`, {
         method: "PUT",
         headers: {
@@ -147,12 +159,15 @@ export const dataProvider: DataProvider = {
   deleteOne: async (params) => {
     if (
       params.resource === "tb_product" ||
-      params.resource === "tb_product_type"
+      params.resource === "tb_product_type" ||
+      params.resource === "user_leave"
     ) {
       const base =
         params.resource === "tb_product"
           ? "/api/products"
-          : "/api/product-types";
+          : params.resource === "tb_product_type"
+          ? "/api/product-types"
+          : "/api/user-leave";
       const response = await fetch(`${base}/${params.id}`, {
         method: "DELETE",
         headers: { "Cache-Control": "no-store" },

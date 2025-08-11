@@ -16,7 +16,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       !process.env.NEXT_PUBLIC_SUPABASE_URL ||
       !process.env.SUPABASE_SERVICE_ROLE_KEY
     ) {
-      return NextResponse.json({ error: "缺少环境变量配置" }, { status: 500 });
+      return NextResponse.json(
+        { error: "缺少环境变量配置" },
+        {
+          status: 500,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
+      );
     }
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,10 +39,36 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .eq("id", params.id)
       .single();
     if (error)
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ data });
+      return NextResponse.json(
+        { error: error.message },
+        {
+          status: 500,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
+      );
+    return NextResponse.json(
+      { data },
+      {
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (e) {
-    return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+    return NextResponse.json(
+      { error: (e as Error).message },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   }
 }
 
@@ -43,7 +78,16 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       !process.env.NEXT_PUBLIC_SUPABASE_URL ||
       !process.env.SUPABASE_SERVICE_ROLE_KEY
     ) {
-      return NextResponse.json({ error: "缺少环境变量配置" }, { status: 500 });
+      return NextResponse.json(
+        { error: "缺少环境变量配置" },
+        {
+          status: 500,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
+      );
     }
     const body = await request.json();
     const supabase = createClient(
@@ -62,10 +106,36 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       .select()
       .single();
     if (error)
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ data });
+      return NextResponse.json(
+        { error: error.message },
+        {
+          status: 500,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
+      );
+    return NextResponse.json(
+      { data },
+      {
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (e) {
-    return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+    return NextResponse.json(
+      { error: (e as Error).message },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   }
 }
 
@@ -75,7 +145,16 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       !process.env.NEXT_PUBLIC_SUPABASE_URL ||
       !process.env.SUPABASE_SERVICE_ROLE_KEY
     ) {
-      return NextResponse.json({ error: "缺少环境变量配置" }, { status: 500 });
+      return NextResponse.json(
+        { error: "缺少环境变量配置" },
+        {
+          status: 500,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
+      );
     }
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -89,9 +168,35 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       .select()
       .single();
     if (error)
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ data });
+      return NextResponse.json(
+        { error: error.message },
+        {
+          status: 500,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
+      );
+    return NextResponse.json(
+      { data },
+      {
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (e) {
-    return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+    return NextResponse.json(
+      { error: (e as Error).message },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   }
 }

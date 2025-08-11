@@ -1,15 +1,18 @@
 "use client";
 
 import { Create, useForm } from "@refinedev/antd";
+import { useInvalidate } from "@refinedev/core";
 import { Form, Input, InputNumber, message } from "antd";
 import { useRouter } from "next/navigation";
 
 export default function ProductTypeCreatePage() {
   const router = useRouter();
+  const invalidate = useInvalidate();
   const { formProps, saveButtonProps, onFinish } = useForm({
     resource: "tb_product_type",
     onMutationSuccess: () => {
       message.success("创建成功");
+      invalidate({ resource: "tb_product_type", invalidates: ["list"] });
       router.push("/product-types");
     },
     onMutationError: (error) => {

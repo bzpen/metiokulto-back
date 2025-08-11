@@ -1,6 +1,7 @@
 "use client";
 
 import { Edit, useForm } from "@refinedev/antd";
+import { useInvalidate } from "@refinedev/core";
 import { Form, Input, InputNumber, message } from "antd";
 import { useRouter } from "next/navigation";
 
@@ -10,11 +11,17 @@ interface Props {
 
 export default function ProductTypeEditPage({ params }: Props) {
   const router = useRouter();
+  const invalidate = useInvalidate();
   const { formProps, saveButtonProps, onFinish } = useForm({
     resource: "tb_product_type",
     id: params.id,
     onMutationSuccess: () => {
       message.success("更新成功");
+      // 先失效列表与详情，再跳转，避免看到缓存数据
+      invalidate({
+        resource: "tb_product_type",
+        invalidates: ["list", "detail"],
+      });
       router.push("/product-types");
     },
     onMutationError: (error) => {

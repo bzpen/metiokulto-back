@@ -12,7 +12,16 @@ export async function GET(request: NextRequest) {
       !process.env.NEXT_PUBLIC_SUPABASE_URL ||
       !process.env.SUPABASE_SERVICE_ROLE_KEY
     ) {
-      return NextResponse.json({ error: "缺少环境变量配置" }, { status: 500 });
+      return NextResponse.json(
+        { error: "缺少环境变量配置" },
+        {
+          status: 500,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
+      );
     }
 
     const { createClient } = await import("@supabase/supabase-js");
@@ -44,8 +53,25 @@ export async function GET(request: NextRequest) {
         .range(from, to)
         .order(sortField, { ascending: asc });
       if (error)
-        return NextResponse.json({ error: error.message }, { status: 500 });
-      return NextResponse.json({ data: data || [], total: count || 0 });
+        return NextResponse.json(
+          { error: error.message },
+          {
+            status: 500,
+            headers: {
+              "Cache-Control":
+                "no-store, no-cache, must-revalidate, proxy-revalidate",
+            },
+          }
+        );
+      return NextResponse.json(
+        { data: data || [], total: count || 0 },
+        {
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
+      );
     }
 
     // 无分页：用于下拉选项
@@ -54,10 +80,36 @@ export async function GET(request: NextRequest) {
       .select("type_key, type_label, sort")
       .order(sortField, { ascending: asc });
     if (error)
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ data });
+      return NextResponse.json(
+        { error: error.message },
+        {
+          status: 500,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
+      );
+    return NextResponse.json(
+      { data },
+      {
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (e) {
-    return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+    return NextResponse.json(
+      { error: (e as Error).message },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   }
 }
 
@@ -68,12 +120,30 @@ export async function POST(request: NextRequest) {
       !process.env.NEXT_PUBLIC_SUPABASE_URL ||
       !process.env.SUPABASE_SERVICE_ROLE_KEY
     ) {
-      return NextResponse.json({ error: "缺少环境变量配置" }, { status: 500 });
+      return NextResponse.json(
+        { error: "缺少环境变量配置" },
+        {
+          status: 500,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
+      );
     }
 
     const body = await request.json();
     if (!body.type_key || !body.type_label) {
-      return NextResponse.json({ error: "缺少必填字段" }, { status: 400 });
+      return NextResponse.json(
+        { error: "缺少必填字段" },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
+      );
     }
 
     const { createClient } = await import("@supabase/supabase-js");
@@ -94,9 +164,35 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error)
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ data });
+      return NextResponse.json(
+        { error: error.message },
+        {
+          status: 500,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
+      );
+    return NextResponse.json(
+      { data },
+      {
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (e) {
-    return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+    return NextResponse.json(
+      { error: (e as Error).message },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   }
 }

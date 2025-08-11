@@ -66,7 +66,10 @@ export const dataProvider: DataProvider = {
         params.resource === "tb_product"
           ? "/api/products"
           : "/api/product-types";
-      const response = await fetch(`${base}/${params.id}`);
+      const response = await fetch(`${base}/${params.id}`, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-store" },
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -90,8 +93,10 @@ export const dataProvider: DataProvider = {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Cache-Control": "no-store",
         },
         body: JSON.stringify(params.variables),
+        cache: "no-store",
       });
 
       if (!response.ok) {
@@ -120,8 +125,10 @@ export const dataProvider: DataProvider = {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          "Cache-Control": "no-store",
         },
         body: JSON.stringify(params.variables),
+        cache: "no-store",
       });
 
       if (!response.ok) {
@@ -148,6 +155,8 @@ export const dataProvider: DataProvider = {
           : "/api/product-types";
       const response = await fetch(`${base}/${params.id}`, {
         method: "DELETE",
+        headers: { "Cache-Control": "no-store" },
+        cache: "no-store",
       });
 
       if (!response.ok) {

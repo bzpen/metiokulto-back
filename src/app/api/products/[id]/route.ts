@@ -1,4 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+export const runtime = "nodejs";
 import { createClient } from "@supabase/supabase-js";
 
 interface RouteParams {
@@ -23,7 +28,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       !process.env.SUPABASE_SERVICE_ROLE_KEY
     ) {
       console.error("环境变量缺失");
-      return NextResponse.json({ error: "缺少环境变量配置" }, { status: 500 });
+      return NextResponse.json(
+        { error: "缺少环境变量配置" },
+        {
+          status: 500,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
+      );
     }
 
     // 创建 Supabase 客户端
@@ -97,12 +111,26 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     console.log("查询成功:", enriched);
-    return NextResponse.json({ data: enriched });
+    return NextResponse.json(
+      { data: enriched },
+      {
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (error) {
     console.error("获取产品详情失败:", error);
     return NextResponse.json(
       { error: "获取产品详情失败: " + (error as Error).message },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
     );
   }
 }
@@ -115,7 +143,16 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       !process.env.NEXT_PUBLIC_SUPABASE_URL ||
       !process.env.SUPABASE_SERVICE_ROLE_KEY
     ) {
-      return NextResponse.json({ error: "缺少环境变量配置" }, { status: 500 });
+      return NextResponse.json(
+        { error: "缺少环境变量配置" },
+        {
+          status: 500,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
+      );
     }
 
     const body = await request.json();
@@ -178,18 +215,38 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
           details: (error as any).details,
           hint: (error as any).hint,
         },
-        { status: 500 }
+        {
+          status: 500,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
       );
     }
 
-    return NextResponse.json({
-      data: data,
-    });
+    return NextResponse.json(
+      {
+        data: data,
+      },
+      {
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (error) {
     console.error("更新产品失败:", error);
     return NextResponse.json(
       { error: "更新产品失败: " + (error as Error).message },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
     );
   }
 }
@@ -202,7 +259,16 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       !process.env.NEXT_PUBLIC_SUPABASE_URL ||
       !process.env.SUPABASE_SERVICE_ROLE_KEY
     ) {
-      return NextResponse.json({ error: "缺少环境变量配置" }, { status: 500 });
+      return NextResponse.json(
+        { error: "缺少环境变量配置" },
+        {
+          status: 500,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
+      );
     }
 
     // 创建 Supabase 客户端
@@ -239,18 +305,38 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
           details: (error as any).details,
           hint: (error as any).hint,
         },
-        { status: 500 }
+        {
+          status: 500,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
       );
     }
 
-    return NextResponse.json({
-      data: data,
-    });
+    return NextResponse.json(
+      {
+        data: data,
+      },
+      {
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (error) {
     console.error("删除产品失败:", error);
     return NextResponse.json(
       { error: "删除产品失败: " + (error as Error).message },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
     );
   }
 }

@@ -2,16 +2,24 @@
 
 import { Create, useForm } from "@refinedev/antd";
 import { Form, Input, InputNumber, message } from "antd";
+import { useRouter } from "next/navigation";
 
 export default function ProductTypeCreatePage() {
+  const router = useRouter();
   const { formProps, saveButtonProps, onFinish } = useForm({
     resource: "tb_product_type",
+    onMutationSuccess: () => {
+      message.success("创建成功");
+      router.push("/product-types");
+    },
+    onMutationError: (error) => {
+      message.error(error.message);
+    },
   });
 
   const handleSubmit = async (values: any) => {
     try {
       await onFinish(values);
-      message.success("创建成功");
     } catch (e) {
       message.error((e as Error).message);
     }

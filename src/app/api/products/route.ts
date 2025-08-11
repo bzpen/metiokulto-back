@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+export const runtime = "nodejs";
+
 // 获取产品列表
 export async function GET(request: NextRequest) {
   try {
@@ -16,7 +21,13 @@ export async function GET(request: NextRequest) {
             hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
           },
         },
-        { status: 500 }
+        {
+          status: 500,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
       );
     }
 
@@ -38,13 +49,18 @@ export async function GET(request: NextRequest) {
     const page = Number.parseInt(searchParams.get("page") || "1");
     const pageSize = Number.parseInt(searchParams.get("pageSize") || "10");
     const filterId = searchParams.get("id");
+    const sortField = (searchParams.get("sort") || "id").trim();
+    const asc = (searchParams.get("order") || "desc").toLowerCase() !== "desc";
 
     // 计算偏移量
     const from = Math.max(0, (page - 1) * pageSize);
     const to = Math.max(from, from + pageSize - 1);
 
-    // 查询数据
-    let query = supabase.from("tb_product").select("*", { count: "exact" });
+    // 查询数据（增加确定性排序，默认按 id 倒序）
+    let query = supabase
+      .from("tb_product")
+      .select("*", { count: "exact" })
+      .order(sortField, { ascending: asc });
     if (filterId) {
       query = query.eq("id", filterId);
     } else {
@@ -78,12 +94,26 @@ export async function GET(request: NextRequest) {
       }));
     }
 
-    return NextResponse.json({ data: enriched, total: count || 0 });
+    return NextResponse.json(
+      { data: enriched, total: count || 0 },
+      {
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (error) {
     console.error("获取产品列表失败:", error);
     return NextResponse.json(
       { error: "获取产品列表失败: " + (error as Error).message },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
     );
   }
 }
@@ -96,7 +126,16 @@ export async function POST(request: NextRequest) {
       !process.env.NEXT_PUBLIC_SUPABASE_URL ||
       !process.env.SUPABASE_SERVICE_ROLE_KEY
     ) {
-      return NextResponse.json({ error: "缺少环境变量配置" }, { status: 500 });
+      return NextResponse.json(
+        { error: "缺少环境变量配置" },
+        {
+          status: 500,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
+      );
     }
 
     const body = await request.json();
@@ -162,18 +201,38 @@ export async function POST(request: NextRequest) {
       console.error("Supabase 插入错误:", error);
       return NextResponse.json(
         { error: "数据库插入失败: " + error.message },
-        { status: 500 }
+        {
+          status: 500,
+          headers: {
+            "Cache-Control":
+              "no-store, no-cache, must-revalidate, proxy-revalidate",
+          },
+        }
       );
     }
 
-    return NextResponse.json({
-      data: data,
-    });
+    return NextResponse.json(
+      {
+        data: data,
+      },
+      {
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (error) {
     console.error("创建产品失败:", error);
     return NextResponse.json(
       { error: "创建产品失败: " + (error as Error).message },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
     );
   }
 }

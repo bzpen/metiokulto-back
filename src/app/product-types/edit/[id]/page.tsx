@@ -2,21 +2,29 @@
 
 import { Edit, useForm } from "@refinedev/antd";
 import { Form, Input, InputNumber, message } from "antd";
+import { useRouter } from "next/navigation";
 
 interface Props {
   params: { id: string };
 }
 
 export default function ProductTypeEditPage({ params }: Props) {
+  const router = useRouter();
   const { formProps, saveButtonProps, onFinish } = useForm({
     resource: "tb_product_type",
     id: params.id,
+    onMutationSuccess: () => {
+      message.success("更新成功");
+      router.push("/product-types");
+    },
+    onMutationError: (error) => {
+      message.error(error.message);
+    },
   });
 
   const handleSubmit = async (values: any) => {
     try {
       await onFinish(values);
-      message.success("更新成功");
     } catch (e) {
       message.error((e as Error).message);
     }

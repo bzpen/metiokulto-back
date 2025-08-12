@@ -17,6 +17,10 @@ import { useState, useEffect } from "react";
 import type { ReactElement } from "react";
 import type { UploadProps, UploadFile } from "antd";
 import { generateImageKeywords } from "@/utils/supabase/storage";
+import dynamic from "next/dynamic";
+import "react-quill/dist/quill.snow.css";
+
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -474,12 +478,22 @@ export default function ProductCreatePage() {
           <Input placeholder="请输入产品详情页链接" />
         </Form.Item>
 
-        <Form.Item label="产品描述" name="describe">
-          <TextArea rows={4} placeholder="请输入产品描述" />
+        <Form.Item
+          label="产品描述"
+          name="describe"
+          valuePropName="value"
+          getValueFromEvent={(content) => content}
+        >
+          <ReactQuill theme="snow" placeholder="请输入产品描述" />
         </Form.Item>
 
-        <Form.Item label="常见问题" name="fqa">
-          <TextArea rows={4} placeholder="请输入常见问题及答案" />
+        <Form.Item
+          label="常见问题"
+          name="fqa"
+          valuePropName="value"
+          getValueFromEvent={(content) => content}
+        >
+          <ReactQuill theme="snow" placeholder="请输入常见问题及答案" />
         </Form.Item>
 
         <Form.Item label="视频链接" name="video_url">

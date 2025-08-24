@@ -15,7 +15,8 @@ export const dataProvider: DataProvider = {
     if (
       params.resource === "tb_product" ||
       params.resource === "tb_product_type" ||
-      params.resource === "user_leave"
+      params.resource === "user_leave" ||
+      params.resource === "tb_eclub"
     ) {
       // 构建API URL
       let apiUrl = `${
@@ -23,6 +24,8 @@ export const dataProvider: DataProvider = {
           ? "/api/products"
           : params.resource === "tb_product_type"
           ? "/api/product-types"
+          : params.resource === "tb_eclub"
+          ? "/api/eclub"
           : "/api/user-leave"
       }?`;
       const params_arr: string[] = [];
@@ -64,13 +67,16 @@ export const dataProvider: DataProvider = {
     if (
       params.resource === "tb_product" ||
       params.resource === "tb_product_type" ||
-      params.resource === "user_leave"
+      params.resource === "user_leave" ||
+      params.resource === "tb_eclub"
     ) {
       const base =
         params.resource === "tb_product"
           ? "/api/products"
           : params.resource === "tb_product_type"
           ? "/api/product-types"
+          : params.resource === "tb_eclub"
+          ? "/api/eclub"
           : "/api/user-leave";
       const response = await fetch(`${base}/${params.id}`, {
         cache: "no-store",
@@ -90,13 +96,16 @@ export const dataProvider: DataProvider = {
     if (
       params.resource === "tb_product" ||
       params.resource === "tb_product_type" ||
-      params.resource === "user_leave"
+      params.resource === "user_leave" ||
+      params.resource === "tb_eclub"
     ) {
       const base =
         params.resource === "tb_product"
           ? "/api/products"
           : params.resource === "tb_product_type"
           ? "/api/product-types"
+          : params.resource === "tb_eclub"
+          ? "/api/eclub"
           : "/api/user-leave";
       const response = await fetch(base, {
         method: "POST",
@@ -125,13 +134,16 @@ export const dataProvider: DataProvider = {
     if (
       params.resource === "tb_product" ||
       params.resource === "tb_product_type" ||
-      params.resource === "user_leave"
+      params.resource === "user_leave" ||
+      params.resource === "tb_eclub"
     ) {
       const base =
         params.resource === "tb_product"
           ? "/api/products"
           : params.resource === "tb_product_type"
           ? "/api/product-types"
+          : params.resource === "tb_eclub"
+          ? "/api/eclub"
           : "/api/user-leave";
       const response = await fetch(`${base}/${params.id}`, {
         method: "PUT",
@@ -160,13 +172,16 @@ export const dataProvider: DataProvider = {
     if (
       params.resource === "tb_product" ||
       params.resource === "tb_product_type" ||
-      params.resource === "user_leave"
+      params.resource === "user_leave" ||
+      params.resource === "tb_eclub"
     ) {
       const base =
         params.resource === "tb_product"
           ? "/api/products"
           : params.resource === "tb_product_type"
           ? "/api/product-types"
+          : params.resource === "tb_eclub"
+          ? "/api/eclub"
           : "/api/user-leave";
       const response = await fetch(`${base}/${params.id}`, {
         method: "DELETE",
